@@ -3,7 +3,7 @@ appVersion = "0.1.0"
 appVersionName = "0.1.0"
 appId = "com.oldguy.kmpmarkup"
 
-androidGradlePlugin = "8.13.0-alpha03"
+androidGradlePlugin = "8.13.0-alpha04"
 javaVersion = "21"
 androidBuildTools = "36.0.0"
 androidSdk = "36"
@@ -12,7 +12,7 @@ androidSdkMinimum = "26"
 kotlin = "2.2.0"
 kotlinCoroutines = "1.10.2"
 
-kmpIo = "0.2.3"
+kmpIo = "0.3.0"
 
 androidxTestRunner = "androidx.test.runner.AndroidJUnitRunner"
 androidxTestRun = "1.7.0"

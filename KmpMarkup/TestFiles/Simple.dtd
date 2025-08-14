@@ -1,0 +1,8 @@
+<!ELEMENT note (to,from,heading,body)>
+<!ELEMENT to (#PCDATA)>
+<!ELEMENT from (#PCDATA)>
+<!ELEMENT heading (#PCDATA)>
+<!ELEMENT body (#PCDATA)>
+<!ATTLIST note date CDATA #IMPLIED>
+<!ENTITY writer "Writer: John Doe.">
+<!ENTITY copyright "Copyright: Example Company.">
