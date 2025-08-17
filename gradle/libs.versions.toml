@@ -9,8 +9,9 @@ androidBuildTools = "36.0.0"
 androidSdk = "36"
 androidSdkMinimum = "26"
 
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 kotlinCoroutines = "1.10.2"
+kotlinx-datetime = "0.7.1"
 
 kmpIo = "0.3.0"
 
@@ -25,6 +26,7 @@ testRunnerBuilder = "de.mannodermaus.junit5.AndroidJUnit5Builder"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinCoroutines"}
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 kmp-io = { module = "io.github.skolson:kmp-io", version.ref = "kmpIo" }
 

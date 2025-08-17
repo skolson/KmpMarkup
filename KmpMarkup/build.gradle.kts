@@ -73,6 +73,7 @@ kotlin {
             }
         }
     }
+    jvm()
     linuxArm64() {
         binaries {
             executable {
@@ -92,6 +93,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(libs.bundles.kotlin.test)
+                implementation(libs.kotlinx.datetime)
             }
         }
         val androidMain by getting {

@@ -1,1 +1,10 @@
-1) Possibly move BOM parsing logic to TextFile class in kmp-io.
+
+Node data
+    evidently text data can have a comment in the middle. will need to handle that
+
+Unit tests
+
+    MultiLevel.xml second
+    MediumSize
+    Large
+    DocType

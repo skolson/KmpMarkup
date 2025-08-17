@@ -23,6 +23,7 @@ class Declaration(
 {
     val isVersionValid = versions.contains(version)
     val isStandaloneValid: Boolean = standalone?.lowercase()?.let { it == yes || it == no } ?: true
+    val isStandalone: Boolean = standalone?.lowercase()?.let { it == yes } ?: false
     val isCharsetSupported: Boolean get() {
         return encoding?.let {
             try {

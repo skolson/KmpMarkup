@@ -1,14 +1,14 @@
 package com.oldguy.markup.model
 
-import com.oldguy.common.io.Uri
-
 open class Node(
     val name: String,
     val attributes: Attributes = Attributes(),
     children: List<Node> = emptyList(),
-    var text: String = ""
+    var text: String = "",
+    var cData: CData? = null
 ): Model("Node") {
-    val namespaces = emptyMap<String, Uri>().toMutableMap()
+    val attributesList = attributes.normals
+    val namespacesList = attributes.namespaces
     val children = children.toMutableList()
     val isLeafNode get() = children.isEmpty()
 

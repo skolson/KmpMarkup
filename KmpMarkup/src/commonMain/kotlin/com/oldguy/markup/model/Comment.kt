@@ -6,6 +6,6 @@ data class Comment(
 
     companion object {
         val start = "<!--"
-        val stop = "--!>"
+        val stop = "-->"
     }
 }

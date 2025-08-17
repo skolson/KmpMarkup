@@ -58,6 +58,7 @@ class XmlFile(
         val byteCount = raw.read(bomBuffer).toInt()
         if (byteCount < bomBuffer.capacity)
             throw ParseException("Could not read first 4 bytes from $path")
+        bomBuffer.flip()
         val firstFour = bomBuffer.getBytes(4)
         bytesSkipped = 0
         charset = if (firstFour.sliceArray(0 until utf8Bom.size).contentEquals(utf8Bom)) {
@@ -93,6 +94,14 @@ class XmlFile(
             if (bytesSkipped > 0)
                 it.skip(bytesSkipped.toULong())
         }.textBuffer
+    }
+
+    suspend fun use(action: suspend (TextBuffer) -> Unit) {
+        open()
+        file?.let {
+            action(it.textBuffer)
+            it.close()
+        }
     }
 
     companion object {
