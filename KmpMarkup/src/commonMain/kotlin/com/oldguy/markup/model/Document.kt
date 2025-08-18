@@ -5,7 +5,7 @@ package com.oldguy.markup.model
  */
 class Document: Model("Document") {
     val prolog = emptyList<ProcessingInstruction>().toMutableList()
-    val root: Node? = null
+    var root: Node? = null
     val comments = emptyList<Comment>().toMutableList()
 
     private var level = 0

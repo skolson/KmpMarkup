@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.minutes
@@ -138,6 +139,181 @@ class BasicParsingTests {
                     }
                     assertTrue(startD)
                     assertTrue(endD)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testMultilevel() {
+        runTest(timeout = 5.minutes) {
+            val path = File.workingDirectory().fullPath + "/TestFiles/MultiLevel.xml"
+            XmlFile(path).use { textBuffer ->
+                XmlParser(textBuffer).apply {
+                    pullParser = true
+                    domParser = true
+                    parse { event, model ->
+                        when (event) {
+                            XmlParser.Event.StartDocument -> {}
+                            XmlParser.Event.EndDocument -> {}
+                            XmlParser.Event.StartTag -> { }
+                            XmlParser.Event.StartTagEnd -> { }
+                            XmlParser.Event.EndTagStart -> { }
+                            XmlParser.Event.EmptyTag -> {
+                                fail("EmptyTag should not be found")
+                            }
+                            XmlParser.Event.CommentStart -> {
+                                fail("CommentStart should not be found")
+                            }
+                            XmlParser.Event.CommentEnd -> {
+                                fail("CommentEnd should not be found")
+                            }
+                            XmlParser.Event.CDataStart -> {
+                                fail("CDataStart should not be found")
+                            }
+                            XmlParser.Event.CDataEnd -> {
+                                fail("CDataEnd should not be found")
+                            }
+                            XmlParser.Event.ProcessingInstruction -> { }
+                            XmlParser.Event.ProcessingInstructionEnd ->  { }
+                            XmlParser.Event.Declaration -> {
+                                assertTrue(model is Declaration)
+                                assertEquals("xml", model.target)
+                                assertEquals("1.0", model.version)
+                                assertTrue(model.isVersionValid)
+                                assertEquals(model.encoding, "UTF-8")
+                            }
+                            XmlParser.Event.DocType -> {
+                                fail("DocType should not be found")
+                            }
+                            XmlParser.Event.CharacterEscape -> {
+                                fail("CharacterEscape should not be found")
+                            }
+                        }
+                        true
+                    }
+                    val bk101 = "bk101"
+                    val bk102 = "bk102"
+                    this.document.apply {
+                        assertEquals(1, prolog.size)
+                        val decl = prolog[0] as Declaration
+                        assertEquals("xml", decl.target)
+                        assertEquals("UTF-8", decl.encoding)
+                        assertEquals("1.0", decl.version)
+                        assertNotNull(root)
+                        root?.traverse { parent, node ->
+                            when (node.name) {
+                                "catalog" -> {
+                                    assertNull(parent)
+                                    assertEquals(2, node.children.size)
+                                    assertTrue(node.text.isEmpty())
+                                }
+                                "book" -> {
+                                    assertEquals("catalog", parent?.name ?: "")
+                                    when (node.attribute("id")?.value) {
+                                        bk101 -> {
+                                            assertTrue(node.text.isEmpty())
+                                            assertEquals(7, node.children.size)
+                                        }
+
+                                        bk102 -> {
+                                            assertTrue(node.text.isEmpty())
+                                            assertEquals(6, node.children.size)
+                                        }
+                                        else -> fail("Unknown book id: ${node.attribute("id")}")
+                                    }
+                                }
+                                "author" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        bk101 -> assertEquals("Gambardella, Matthew", node.text)
+                                        bk102 -> assertEquals("Corets, Eva", node.text)
+                                        else -> fail("Parent invalid attribute: id, ${parent?.attribute("id")?.value ?: "null"}")
+                                    }
+                                }
+                                "title" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        bk101 -> assertEquals("XML Developer's Guide", node.text)
+                                        bk102 -> assertEquals("Maeve Ascendant", node.text)
+                                        else -> fail("Parent invalid attribute: id, ${parent?.attribute("id")?.value ?: "null"}")
+                                    }
+                                }
+                                "genre" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        bk101 -> assertEquals("Computer", node.text)
+                                        bk102 -> assertEquals("Fantasy", node.text)
+                                        else -> fail("Parent invalid attribute: id, ${parent?.attribute("id")?.value ?: "null"}")
+                                    }
+                                }
+                                "price" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        bk101 -> assertEquals("44.95", node.text)
+                                        bk102 -> assertEquals("5.95", node.text)
+                                        else -> fail("Parent invalid attribute: id, ${parent?.attribute("id")?.value ?: "null"}")
+                                    }
+                                }
+                                "publish_date" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        bk101 -> assertEquals("2000-10-01", node.text)
+                                        bk102 -> assertEquals("2000-11-17", node.text)
+                                        else -> fail("Parent invalid attribute: id, ${parent?.attribute("id")?.value ?: "null"}")
+                                    }
+                                }
+                                "description" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        bk101 -> assertEquals("An in-depth look at creating applications with XML.", node.text)
+                                        bk102 -> assertEquals("A fantasy adventure in the ancient world of Maeve.", node.text)
+                                        else -> fail("Parent invalid attribute: id, ${parent?.attribute("id")?.value ?: "null"}")
+                                    }
+                                }
+                                "reviews" -> {
+                                    assertEquals("book", parent?.name ?: "")
+                                    assertEquals(bk101, parent?.attribute("id")?.value)
+                                    assertEquals(2, node.children.size)
+                                }
+                                "review" -> {
+                                    assertEquals("reviews", parent?.name ?: "")
+                                    assertEquals(2, node.children.size)
+                                    when (node.attribute("id")?.value) {
+                                        "rev001" -> {
+                                            assertEquals("5", node.children[0].text)
+                                            assertEquals("Excellent guide for XML beginners.", node.children[1].text)
+                                        }
+                                        "rev002" -> {
+                                            assertEquals("4", node.children[0].text)
+                                            assertEquals("Covers a lot of ground, but could be more concise.", node.children[1].text)
+                                        }
+                                        else -> fail("Unknown review id: ${node.attribute("id")}")
+                                    }
+                                }
+                                "rating" -> {
+                                    assertEquals("review", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        "rev001" -> assertEquals("5", node.text)
+                                        "rev002" -> assertEquals("4", node.text)
+                                        else -> fail("Unknown review id: ${node.attribute("id")}")
+                                    }
+                                }
+                                "comment" -> {
+                                    assertEquals("review", parent?.name ?: "")
+                                    when (parent?.attribute("id")?.value) {
+                                        "rev001" -> assertEquals("Excellent guide for XML beginners.", node.text)
+                                        "rev002" -> assertEquals("Covers a lot of ground, but could be more concise.", node.text)
+                                        else -> fail("Unknown review id: ${node.attribute("id")}")
+                                    }
+                                }
+                                else -> {
+                                    fail("Unknown node name: ${node.name}")
+                                }
+                            }
+
+                        }
+                    }
                 }
             }
         }

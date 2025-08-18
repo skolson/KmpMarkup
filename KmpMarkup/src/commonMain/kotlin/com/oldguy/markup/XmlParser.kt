@@ -12,7 +12,6 @@ class XmlParser(val textBuffer: TextBuffer)
         StartTagEnd,
         EndTagStart,
         EmptyTag,
-        Characters,
         CommentStart,
         CommentEnd,
         CDataStart,
@@ -27,6 +26,10 @@ class XmlParser(val textBuffer: TextBuffer)
     private lateinit var declaration: Declaration
     private var nodeStack: MutableList<Node> = mutableListOf()
     private val level get() = nodeStack.size
+
+    var document = Document()
+        private set
+
     val root: Node? get() = if (nodeStack.isEmpty()) null else nodeStack[0]
     private val active: Node? get() = nodeStack.lastOrNull()
     private val parent: Node? get() = nodeStack.getOrNull(nodeStack.size - 2)
@@ -58,7 +61,7 @@ class XmlParser(val textBuffer: TextBuffer)
             escapedSingleQuote = ""
             quoteType = TextBuffer.QuoteType.Either
         }
-        val document = Document()
+        document = Document()
         event(Event.StartDocument, document)
         var saveSeparators = emptyList<String>()
         var whitespace = false
@@ -97,17 +100,21 @@ class XmlParser(val textBuffer: TextBuffer)
                         )
                     val name = textBuffer.token(true)
                     validateName(name.value)
-                    val node = Node(name.value)
-                    if (name.separator == Node.stop) {
-                        lastToken = name
-                    } else {
-                        val attrs = parseAttributes(listOf(Node.stop, Node.selfClosing))
-                        node.attributes.attributes.putAll(attrs.attributes)
+                    Node(name.value).apply {
+                        if (name.separator == Node.stop) {
+                            lastToken = name
+                        } else {
+                            val attrs = parseAttributes(listOf(Node.stop, Node.selfClosing))
+                            attributes.attributes.putAll(attrs.attributes)
+                        }
+                        nodeStack.add(this)
+                        level = level
+                        if (domParser) {
+                            if (document.root == null) document.root = root
+                            parent?.children?.add(this)
+                        }
+                        model = this
                     }
-                    nodeStack.add(node)
-                    node.level = level
-                    if (domParser) parent?.children?.add(node)
-                    model = node
                     legalNextSeparators = listOf(Node.stop, Node.endStart, Node.selfClosing)
                 }
                 Event.StartTagEnd -> {
@@ -157,7 +164,6 @@ class XmlParser(val textBuffer: TextBuffer)
                     nodeStack.removeLast()
                     legalNextSeparators = listOf(Node.start, Node.endStart, Comment.start)
                 }
-                Event.Characters -> {}
                 Event.CommentStart -> {
                     if (capturingText && !token.value.isBlank())
                         addTextToNode(token)

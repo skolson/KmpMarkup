@@ -34,6 +34,15 @@ data class Attributes(
         }
         return attributes[name]!!
     }
+
+    override fun toString(): String {
+        return StringBuilder().apply {
+            attributes.values.forEach {
+                append(it.toString())
+                append(", ")
+            }
+        }.toString()
+    }
 }
 data class Attribute(
     val name: String,
@@ -49,6 +58,10 @@ data class Attribute(
             ""
     val localName get() = name.substringAfter(namespaceSeparator, name)
     val uri get() = if (isNamespace) Uri(value) else null
+
+    override fun toString(): String {
+        return "name: $name, value:, $value"
+    }
 
     companion object {
         const val namespaceSeparator = ":"
