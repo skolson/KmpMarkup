@@ -11,6 +11,7 @@ import com.oldguy.markup.model.ProcessingInstruction
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -207,9 +208,11 @@ class BasicParsingTests {
                                     assertNull(parent)
                                     assertEquals(2, node.children.size)
                                     assertTrue(node.text.isEmpty())
+                                    assertFalse(node.isLeafNode)
                                 }
                                 "book" -> {
                                     assertEquals("catalog", parent?.name ?: "")
+                                    assertFalse(node.isLeafNode)
                                     when (node.attribute("id")?.value) {
                                         bk101 -> {
                                             assertTrue(node.text.isEmpty())
@@ -225,6 +228,7 @@ class BasicParsingTests {
                                 }
                                 "author" -> {
                                     assertEquals("book", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         bk101 -> assertEquals("Gambardella, Matthew", node.text)
                                         bk102 -> assertEquals("Corets, Eva", node.text)
@@ -233,6 +237,7 @@ class BasicParsingTests {
                                 }
                                 "title" -> {
                                     assertEquals("book", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         bk101 -> assertEquals("XML Developer's Guide", node.text)
                                         bk102 -> assertEquals("Maeve Ascendant", node.text)
@@ -241,6 +246,7 @@ class BasicParsingTests {
                                 }
                                 "genre" -> {
                                     assertEquals("book", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         bk101 -> assertEquals("Computer", node.text)
                                         bk102 -> assertEquals("Fantasy", node.text)
@@ -249,6 +255,7 @@ class BasicParsingTests {
                                 }
                                 "price" -> {
                                     assertEquals("book", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         bk101 -> assertEquals("44.95", node.text)
                                         bk102 -> assertEquals("5.95", node.text)
@@ -257,6 +264,7 @@ class BasicParsingTests {
                                 }
                                 "publish_date" -> {
                                     assertEquals("book", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         bk101 -> assertEquals("2000-10-01", node.text)
                                         bk102 -> assertEquals("2000-11-17", node.text)
@@ -265,6 +273,7 @@ class BasicParsingTests {
                                 }
                                 "description" -> {
                                     assertEquals("book", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         bk101 -> assertEquals("An in-depth look at creating applications with XML.", node.text)
                                         bk102 -> assertEquals("A fantasy adventure in the ancient world of Maeve.", node.text)
@@ -275,10 +284,12 @@ class BasicParsingTests {
                                     assertEquals("book", parent?.name ?: "")
                                     assertEquals(bk101, parent?.attribute("id")?.value)
                                     assertEquals(2, node.children.size)
+                                    assertFalse(node.isLeafNode)
                                 }
                                 "review" -> {
                                     assertEquals("reviews", parent?.name ?: "")
                                     assertEquals(2, node.children.size)
+                                    assertFalse(node.isLeafNode)
                                     when (node.attribute("id")?.value) {
                                         "rev001" -> {
                                             assertEquals("5", node.children[0].text)
@@ -293,6 +304,7 @@ class BasicParsingTests {
                                 }
                                 "rating" -> {
                                     assertEquals("review", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         "rev001" -> assertEquals("5", node.text)
                                         "rev002" -> assertEquals("4", node.text)
@@ -301,6 +313,7 @@ class BasicParsingTests {
                                 }
                                 "comment" -> {
                                     assertEquals("review", parent?.name ?: "")
+                                    assertTrue(node.isLeafNode)
                                     when (parent?.attribute("id")?.value) {
                                         "rev001" -> assertEquals("Excellent guide for XML beginners.", node.text)
                                         "rev002" -> assertEquals("Covers a lot of ground, but could be more concise.", node.text)
