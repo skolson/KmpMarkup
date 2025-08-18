@@ -6,6 +6,7 @@ import com.oldguy.markup.model.Attribute
 import com.oldguy.markup.model.CData
 import com.oldguy.markup.model.Comment
 import com.oldguy.markup.model.Declaration
+import com.oldguy.markup.model.Document
 import com.oldguy.markup.model.Node
 import com.oldguy.markup.model.ProcessingInstruction
 import kotlinx.coroutines.test.runTest
@@ -325,6 +326,50 @@ class BasicParsingTests {
                                 }
                             }
 
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testMediumSize() {
+        runTest(timeout = 5.minutes) {
+            val path = File.workingDirectory().fullPath + "/TestFiles/MediumSize.xml"
+            var doc: Document? = null
+            XmlFile(path).use { textBuffer ->
+                XmlParser(textBuffer).apply {
+                    pullParser = false
+                    domParser = true
+                    parse { event, model ->
+                        true
+                    }
+                    doc = document
+                }
+            }
+            assertNotNull(doc)
+            doc.apply {
+                assertEquals(1, prolog.size)
+                val decl = prolog[0] as Declaration
+                assertEquals("xml", decl.target)
+                assertEquals("1.0", decl.version)
+                assertNotNull(root)
+                val plantChildren = listOf("COMMON", "BOTANICAL", "ZONE", "LIGHT", "PRICE", "AVAILABILITY")
+                root?.traverse { parent, node ->
+                    when (node.name) {
+                        "CATALOG" -> {
+                            assertNull(parent)
+                            assertEquals(36, node.children.size)
+                            assertTrue(node.text.isEmpty())
+                            assertFalse(node.isLeafNode)
+                        }
+                        "PLANT" -> {
+                            assertEquals("CATALOG", parent?.name ?: "")
+                            assertFalse(node.isLeafNode)
+                            assertEquals(6, node.children.size)
+                            val compare = node.children.map { it.name } == plantChildren
+                            assertTrue(compare, "Children names are not correct:, ${node.children.joinToString { it.name }}")
                         }
                     }
                 }
