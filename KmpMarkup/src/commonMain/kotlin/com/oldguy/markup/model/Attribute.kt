@@ -52,6 +52,6 @@ data class Attribute(
 
     companion object {
         const val namespaceSeparator = ":"
-        const val reservedPrefix = "xmlns:"
+        const val reservedPrefix = "xmlns"
     }
 }

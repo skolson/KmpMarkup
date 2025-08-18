@@ -1,6 +1,8 @@
 package com.oldguy.markup
 
 import com.oldguy.common.io.File
+import com.oldguy.common.io.Uri
+import com.oldguy.markup.model.Attribute
 import com.oldguy.markup.model.CData
 import com.oldguy.markup.model.Comment
 import com.oldguy.markup.model.Declaration
@@ -33,8 +35,6 @@ class BasicParsingTests {
                             XmlParser.Event.EndDocument -> endD = true
                             XmlParser.Event.StartTag -> {
                                 nodeIndex++
-                            }
-                            XmlParser.Event.EndTagStart -> {
                                 if (model !is Node)
                                     fail("model is not a node: ${model.type}")
                                 else {
@@ -46,40 +46,54 @@ class BasicParsingTests {
                                     }
                                     val name = nodeNames[nodeIndex]
                                     assertEquals(name, model.name)
-                                    when (nodeIndex) {
-                                        0 -> {
+                                }
+                            }
+                            XmlParser.Event.EndTagStart -> {
+                                if (model !is Node)
+                                    fail("model is not a node: ${model.type}")
+                                else {
+                                    when (model.name) {
+                                        nodeNames[0] -> {
                                             assertTrue(model.attributesList.isEmpty())
-                                            assertEquals(1, level)
+                                            assertEquals(1, model.level)
                                         }
-                                        1 -> {
+                                        nodeNames[1] -> {
                                             assertEquals("foo", model.name)
                                             assertEquals("bar", model.text)
                                             assertTrue { model.attributesList.isEmpty() }
                                             assertTrue { model.namespacesList.isEmpty() }
-                                            assertEquals(2, level)
+                                            assertEquals(2, model.level)
                                         }
-                                        2 -> {
-                                            assertEquals(1, model.namespacesList.size)
-                                            assertEquals("http://hugospace.org", model.namespacesList[0].value)
+                                        nodeNames[2] -> {
+                                            val uri = "http://hugospace.org"
                                             assertTrue(model.attributesList.isEmpty())
-                                            assertEquals(2, level)
+                                            assertEquals(1, model.namespacesList.size)
+                                            val attr = model.namespacesList[0]
+                                            assertTrue(attr.isNamespace)
+                                            assertEquals(Attribute.reservedPrefix, attr.namespace)
+                                            assertEquals(Attribute.reservedPrefix, attr.localName)
+                                            assertEquals(Uri(uri).uriString, attr.uri?.uriString)
+                                            assertEquals(uri, model.namespacesList[0].value)
+                                            assertEquals(2, model.level)
                                         }
-                                        3 -> {
+                                        nodeNames[3] -> {
                                             assertEquals("This is in a new namespace", model.text)
-                                            assertEquals(3, level)
+                                            assertEquals(3, model.level)
                                         }
-                                        4 -> {
-                                            assertEquals("hiho", model.text)
-                                            assertEquals(2, level)
+                                        nodeNames[4] -> {
+                                            assertEquals(contentData, model.text)
+                                            assertEquals(2, model.level)
                                         }
-                                        5 -> {
+                                        nodeNames[5] -> {
                                             assertEquals(1, model.attributesList.size)
                                             assertEquals("testattr", model.attributesList[0].name)
                                             assertEquals("123abc", model.attributesList[0].value)
                                             assertEquals("123abc", model.attributes.attributes["testattr"]?.value ?: "")
                                             assertTrue { model.namespacesList.isEmpty() }
                                         }
-                                        else -> {}
+                                        else -> {
+                                            fail("Unknown node name: ${model.name}")
+                                        }
                                     }
                                 }
                             }

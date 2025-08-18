@@ -26,7 +26,7 @@ class XmlParser(val textBuffer: TextBuffer)
 
     private lateinit var declaration: Declaration
     private var nodeStack: MutableList<Node> = mutableListOf()
-    val level get() = nodeStack.size
+    private val level get() = nodeStack.size
     val root: Node? get() = if (nodeStack.isEmpty()) null else nodeStack[0]
     private val active: Node? get() = nodeStack.lastOrNull()
     private val parent: Node? get() = nodeStack.getOrNull(nodeStack.size - 2)
@@ -101,10 +101,11 @@ class XmlParser(val textBuffer: TextBuffer)
                     if (name.separator == Node.stop) {
                         lastToken = name
                     } else {
-                        val attrs = parseAttributes(Node.stop)
+                        val attrs = parseAttributes(listOf(Node.stop, Node.selfClosing))
                         node.attributes.attributes.putAll(attrs.attributes)
                     }
                     nodeStack.add(node)
+                    node.level = level
                     if (domParser) parent?.children?.add(node)
                     model = node
                     legalNextSeparators = listOf(Node.stop, Node.endStart, Node.selfClosing)
@@ -112,10 +113,15 @@ class XmlParser(val textBuffer: TextBuffer)
                 Event.StartTagEnd -> {
                     capturingText = true
                     legalNextSeparators = listOf(Node.start, Comment.start, Node.endStart)
+                    textBuffer.tokenValueQuotedString = false
                 }
                 Event.EndTagStart -> {
                     if (capturingText)
                         addTextToNode(token)
+                    active?.let {
+                        if (it.text.isNotBlank())
+                            it.text = stringEscapes(it.text)
+                    }
                     val endNameToken = textBuffer.token()
                     capturingText = false
                     if (endNameToken.separator == Node.stop) {
@@ -127,26 +133,41 @@ class XmlParser(val textBuffer: TextBuffer)
                                     textBuffer.lineCount,
                                     textBuffer.linePosition
                                 )
+                            if (nodeStack.last().name != name)
+                                throw ParseException(
+                                    "nodestack name: ${nodeStack.last().name} must match $name"
+                                )
                         } ?: throw ParseException(
                             "Error parsing end tag for name ${token.value}. No current node found",
                             token.line,
                             token.position
                         )
-                    }
+                    } else
+                        throw ParseException(
+                            "Illegal separator while parsing node End tag: ${endNameToken.separator}",
+                            endNameToken.line,
+                            endNameToken.position
+                        )
                     model = active
+                    nodeStack.removeLast()
                 }
                 Event.EmptyTag -> {
                     capturingText = false
-                    legalNextSeparators = listOf(Node.start, Comment.start)
+                    model = active
+                    nodeStack.removeLast()
+                    legalNextSeparators = listOf(Node.start, Node.endStart, Comment.start)
                 }
                 Event.Characters -> {}
                 Event.CommentStart -> {
                     if (capturingText && !token.value.isBlank())
                         addTextToNode(token)
-                    saveSeparators = textBuffer.tokenSeparators
-                    whitespace = textBuffer.retainWhitespace
-                    textBuffer.retainWhitespace = true
-                    textBuffer.tokenSeparators = listOf(Comment.stop)
+                    textBuffer.apply {
+                        saveSeparators = tokenSeparators
+                        whitespace = retainWhitespace
+                        retainWhitespace = true
+                        tokenValueQuotedString = false
+                        tokenSeparators = listOf(Comment.stop)
+                    }
                     model = Comment("")
                     legalNextSeparators = listOf(Comment.stop)
                 }
@@ -159,6 +180,7 @@ class XmlParser(val textBuffer: TextBuffer)
                 Event.CDataStart -> {
                     model = CData("")
                     legalNextSeparators = listOf(CData.stop)
+                    textBuffer.tokenValueQuotedString = false
                 }
                 Event.CDataEnd -> {
                     model = CData(token.value)
@@ -180,7 +202,7 @@ class XmlParser(val textBuffer: TextBuffer)
                             textBuffer.linePosition
                         )
                     model = if (target.lowercase() == ProcessingInstruction.xml) {
-                        val attrs = parseAttributes(ProcessingInstruction.stop)
+                        val attrs = parseAttributes(listOf(ProcessingInstruction.stop))
                         Declaration.parse(attrs)
                     } else
                         ProcessingInstruction(target, "")
@@ -293,27 +315,32 @@ class XmlParser(val textBuffer: TextBuffer)
             result = result.replace(escaped, Char(code).toString())
             index = result.indexOf(escapePrefix)
         }
-        return result
+        return result.trim()
     }
 
     /**
      * Parse attributes until a Node end tag separator is found. Set the lastToken,
      * typically the PI.stop separator, so it can be processed normally
      */
-    suspend fun parseAttributes(endingSeparator: String): Attributes {
+    suspend fun parseAttributes(endingSeparators: List<String>): Attributes {
         val equalChar = "="
-        return Attributes().apply {
-            textBuffer.addTokenSeparator(equalChar)
-            while (!textBuffer.isEndOfFile ) {
-                val nameToken = textBuffer.token()
-                if (nameToken.separator == endingSeparator) {
-                    lastToken = nameToken
-                    return this
+        val save: List<String>
+        textBuffer.apply {
+            tokenValueQuotedString = true
+            save = tokenSeparators
+            tokenSeparators = listOf(equalChar) + endingSeparators
+            return Attributes().apply {
+                while (!isEndOfFile ) {
+                    val nameToken = token()
+                    if (endingSeparators.contains(nameToken.separator)) {
+                        lastToken = nameToken
+                        tokenSeparators = save
+                        return this
+                    }
+                    val valueToken = token()
+                    parse(nameToken, valueToken)
                 }
-                val valueToken = textBuffer.token()
-                parse(nameToken, valueToken)
             }
-            textBuffer.removeTokenSeparator(equalChar)
         }
     }
     companion object {

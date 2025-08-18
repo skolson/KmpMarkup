@@ -5,10 +5,11 @@ open class Node(
     val attributes: Attributes = Attributes(),
     children: List<Node> = emptyList(),
     var text: String = "",
-    var cData: CData? = null
+    var cData: CData? = null,
+    var level: Int = 0
 ): Model("Node") {
-    val attributesList = attributes.normals
-    val namespacesList = attributes.namespaces
+    val attributesList get() = attributes.normals
+    val namespacesList get() = attributes.namespaces
     val children = children.toMutableList()
     val isLeafNode get() = children.isEmpty()
 
