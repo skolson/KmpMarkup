@@ -14,6 +14,7 @@ kotlinCoroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 
 kmpIo = "0.3.0"
+bigDecimal = "0.3.10"
 
 dokkaPlugin = "2.0.0"
 vannikTech = "0.34.0"
@@ -32,6 +33,7 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 kmp-io = { module = "io.github.skolson:kmp-io", version.ref = "kmpIo" }
+bigdecimal = { module = "com.ionspin.kotlin:bignum", version.ref = "bigDecimal"}
 
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }

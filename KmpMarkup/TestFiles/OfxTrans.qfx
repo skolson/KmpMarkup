@@ -1,0 +1,107 @@
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20250819102803.850
+      <LANGUAGE>ENG
+      <DTPROFUP>20050531050000.000
+      <FI>
+        <ORG>Elan Financial Services
+        <FID>10308
+      </FI>
+      <INTU.BID>10308
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <CREDITCARDMSGSRSV1>
+    <CCSTMTTRNRS>
+      <TRNUID>0
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <CCSTMTRS>
+        <CURDEF>USD
+        <CCACCTFROM>
+          <ACCTID>123456XXXXXX1234
+        </CCACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20250718050000.000
+          <DTEND>20250823060000.000
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250721120000.000
+            <TRNAMT>-31.50
+            <FITID>090a9fb8-748c-380a-7648-72b5147a68a1
+            <NAME>McDonalds 32113        191-67897
+            <MEMO>24793385202000034529075; 05814; ; ; ;
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250729120000.000
+            <TRNAMT>-193.03
+            <FITID>43279695-20f5-90f7-cc37-b05590135940
+            <NAME>EBM VENTURES           718-686-7
+            <MEMO>24116415209712014795603; 05999; ; ; ;
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250804120000.000
+            <TRNAMT>-28.53
+            <FITID>b511c36d-c8bf-d704-50f5-9cb4bbfd4c05
+            <NAME>BURGER KING #11982     ROSEVILLE
+            <MEMO>24941445213054713322773; 05814; ; ; ;
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250806120000.000
+            <TRNAMT>-45.94
+            <FITID>b91293ad-c547-e016-fd50-6255e34e173c
+            <NAME>ATLASLIFESYLESHOP      800-945-4
+            <MEMO>24072835217017021133744; 05732; ; ; ;
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250806120000.000
+            <TRNAMT>-24.99
+            <FITID>3809b176-8858-5b08-e572-bd3f08cc30a8
+            <NAME>ATLASLIFESYLESHOP      800-945-4
+            <MEMO>24072835217017021133751; 05732; ; ; ;
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250815120000.000
+            <TRNAMT>206.96
+            <FITID>d03c0434-b72d-ffcc-0e44-3b97e7476846
+            <NAME>PAYMENT   THANK YOU
+            <MEMO>FC 00100000; 00000; ; ; ;
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250818120000.000
+            <TRNAMT>-86.81
+            <FITID>632ec62c-0f33-e592-c967-a10c2c612235
+            <NAME>UEP*CHINA VILLA        ROCKLIN  
+            <MEMO>24445005228600270202745; 05812; ; ; ;
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>-410.80
+          <DTASOF>20250819102803.851
+        </LEDGERBAL>
+      </CCSTMTRS>
+    </CCSTMTTRNRS>
+  </CREDITCARDMSGSRSV1>
+</OFX>

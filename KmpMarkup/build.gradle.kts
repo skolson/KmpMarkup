@@ -96,12 +96,13 @@ kotlin {
             dependencies {
                 implementation(libs.kmp.io)
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.bigdecimal)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(libs.bundles.kotlin.test)
-                implementation(libs.kotlinx.datetime)
             }
         }
         val androidMain by getting {

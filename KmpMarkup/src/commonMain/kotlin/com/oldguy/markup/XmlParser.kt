@@ -48,6 +48,12 @@ class XmlParser(val textBuffer: TextBuffer)
     var domParser = false
 
     /**
+     * Set this true if the document to be parsed is SGML, and does not use end tags on leaf nodes
+     * that have text data in them. Default is false for normal XML that requires end tags on all nodes.
+     */
+    var sgmlNoLeafEndTag = false
+
+    /**
      * Configure TextBuffer for XML parsing. Then parse the source, calling the event lambda for each
      * XML token type encountered
      */
@@ -69,7 +75,8 @@ class XmlParser(val textBuffer: TextBuffer)
         var model: Model? = null
         var capturingText = false
         while (!textBuffer.isEndOfFile) {
-            val token = lastToken ?: textBuffer.token()
+            var token = lastToken ?: textBuffer.token()
+            if (token.separator.isBlank() && token.value.isBlank()) continue
             lastToken = null
             if (legalNextSeparators.isNotEmpty() && !legalNextSeparators.contains(token.separator))
                 throw ParseException(
@@ -91,6 +98,7 @@ class XmlParser(val textBuffer: TextBuffer)
                     model = document
                 }
                 Event.StartTag -> {
+                    token = emulateEndTag(token, capturingText)
                     capturingText = false
                     if (!token.value.isBlank())
                         throw ParseException(
@@ -108,7 +116,7 @@ class XmlParser(val textBuffer: TextBuffer)
                             attributes.attributes.putAll(attrs.attributes)
                         }
                         nodeStack.add(this)
-                        level = level
+                        level = this@XmlParser.level
                         if (domParser) {
                             if (document.root == null) document.root = root
                             parent?.children?.add(this)
@@ -123,12 +131,9 @@ class XmlParser(val textBuffer: TextBuffer)
                     textBuffer.tokenValueQuotedString = false
                 }
                 Event.EndTagStart -> {
+                    token = emulateEndTag(token, capturingText)
                     if (capturingText)
-                        addTextToNode(token)
-                    active?.let {
-                        if (it.text.isNotBlank())
-                            it.text = stringEscapes(it.text)
-                    }
+                        addTextToNode(token, true)
                     val endNameToken = textBuffer.token()
                     capturingText = false
                     if (endNameToken.separator == Node.stop) {
@@ -166,7 +171,7 @@ class XmlParser(val textBuffer: TextBuffer)
                 }
                 Event.CommentStart -> {
                     if (capturingText && !token.value.isBlank())
-                        addTextToNode(token)
+                        addTextToNode(token, false)
                     textBuffer.apply {
                         saveSeparators = tokenSeparators
                         whitespace = retainWhitespace
@@ -252,9 +257,27 @@ class XmlParser(val textBuffer: TextBuffer)
         event(Event.EndDocument, document)
     }
 
-    private fun addTextToNode(token: TextBuffer.Token) {
+    private fun emulateEndTag(token: TextBuffer.Token, capturingText: Boolean): TextBuffer.Token {
+        if (sgmlNoLeafEndTag && capturingText && !token.value.isBlank()) {
+            addTextToNode(token, true)
+            nodeStack.removeLast()
+            return TextBuffer.Token(
+                token.separator,
+                "",
+                false,
+                token.line,
+                token.position
+            )
+        }
+        return token
+    }
+
+    private fun addTextToNode(token: TextBuffer.Token, doEscapes: Boolean) {
         active?.let {
-            it.text += token.value
+            it.rawText += token.value
+            if (doEscapes && it.rawText.isNotBlank()) {
+                it.rawText = stringEscapes(it.rawText)
+            }
         } ?: throw ParseException(
             "Error parsing data for a node. No current node found",
             token.line,
