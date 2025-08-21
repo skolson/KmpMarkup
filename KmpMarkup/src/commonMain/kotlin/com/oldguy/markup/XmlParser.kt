@@ -20,7 +20,7 @@ class XmlParser(val textBuffer: TextBuffer)
         ProcessingInstructionEnd,
         Declaration,
         DocType,
-        CharacterEscape
+        Entity
     }
 
     private lateinit var declaration: Declaration
@@ -235,7 +235,7 @@ class XmlParser(val textBuffer: TextBuffer)
                 }
                 Event.Declaration -> { }
                 Event.DocType -> TODO()
-                Event.CharacterEscape -> { }
+                Event.Entity -> { }
                 null -> {
                     // Should never happen, see logic before "when"
                     throw ParseException(
@@ -390,7 +390,7 @@ class XmlParser(val textBuffer: TextBuffer)
             CData.start to Event.CDataStart,
             CData.stop to Event.CDataEnd,
             "<!DOCTYPE" to Event.DocType,
-            "<!ENTITY" to Event.CharacterEscape,
+            "<!ENTITY" to Event.Entity,
         )
 
         private val generalEscapes = mapOf<String, String>(
