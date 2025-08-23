@@ -25,11 +25,17 @@ open class Node(
     val isLeafNode get() = children.isEmpty()
     val text get() = rawText.trim()
 
-    fun attribute(name: String) = attributes.attributes[name]
+    fun attribute(name: String) = attributes[name]
 
     fun child(name: String) = children.first { it.name == name }
+    fun children(name: String) = children.filter { it.name == name }
     fun hasChild(name: String) = children.count { it.name == name }
-    fun namespace(name: String) = attributes.namespaces.firstOrNull { it.name == name }
+
+    /**
+     * Get namespace by local name.
+     * @param localName local name of namespace, without prefix. or "xmlns" for XML namespace
+     */
+    fun namespace(localName: String) = attributes.namespace(localName)
 
     /**
      * Traverse DOM tree using left-wise recursion, starting at the current node.

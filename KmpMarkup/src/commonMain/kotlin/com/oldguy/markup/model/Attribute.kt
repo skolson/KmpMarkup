@@ -10,6 +10,8 @@ data class Attributes(
     val namespaces get() = attributes.values.filter { it.isNamespace }
     val normals get() = attributes.values.filter { !it.isNamespace }
 
+    operator fun get(name: String) = attributes[name]
+
     fun parse(nameToken: TextBuffer.Token, valueToken: TextBuffer.Token): Attribute {
         val name = nameToken.value.trim()
         val value = valueToken.value
@@ -34,6 +36,8 @@ data class Attributes(
         }
         return attributes[name]!!
     }
+
+    fun namespace(localName: String) = namespaces.firstOrNull { it.localName == localName }
 
     override fun toString(): String {
         return StringBuilder().apply {

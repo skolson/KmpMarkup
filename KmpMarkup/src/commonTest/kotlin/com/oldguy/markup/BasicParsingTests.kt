@@ -188,8 +188,8 @@ class BasicParsingTests {
                             XmlParser.Event.DocType -> {
                                 fail("DocType should not be found")
                             }
-                            XmlParser.Event.CharacterEscape -> {
-                                fail("CharacterEscape should not be found")
+                            XmlParser.Event.Entity -> {
+                                fail("Entity should not be found")
                             }
                         }
                         true
@@ -370,6 +370,100 @@ class BasicParsingTests {
                             assertEquals(6, node.children.size)
                             val compare = node.children.map { it.name } == plantChildren
                             assertTrue(compare, "Children names are not correct:, ${node.children.joinToString { it.name }}")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testNames() {
+        runTest {
+            val path = File.workingDirectory().fullPath + "/TestFiles/encrypt.xml"
+            var doc: Document? = null
+            XmlFile(path).use { textBuffer ->
+                XmlParser(textBuffer).apply {
+                    pullParser = false
+                    domParser = true
+                    parse { event, model ->
+                        true
+                    }
+                    doc = document
+                }
+            }
+            assertNotNull(doc)
+            doc.apply {
+                assertEquals(1, prolog.size)
+                (prolog[0] as Declaration).apply {
+                    assertEquals("xml", target)
+                    assertEquals("1.0", version)
+                    assertTrue(isVersionValid)
+                    assertTrue(isStandaloneValid)
+                    assertEquals("UTF-8", encoding)
+                    assertTrue(isCharsetSupported)
+                }
+                assertNotNull(root)
+                root?.let {
+                    assertEquals("encryption", it.name)
+                    assertEquals(2, it.children.size)
+                    assertEquals(2, it.namespacesList.size)
+                    assertEquals(2, it.attributes.namespaces.size)
+                    assertEquals("p", it.namespace("p")?.localName)
+                    assertEquals("xmlns", it.namespace("xmlns")?.localName)
+                    assertEquals("http://schemas.microsoft.com/office/2006/encryption", it.namespace("xmlns")?.value)
+                    assertEquals("http://schemas.microsoft.com/office/2006/keyEncryptor/password", it.namespace("p")?.value)
+                    traverse { level, node ->
+                        when (node.name) {
+                            "keyData" -> {
+                                assertTrue(node.children.isEmpty())
+                                assertEquals(8, node.attributesList.size)
+                                assertEquals("16", node.attribute("saltSize")?.value)
+                                assertEquals("16", node.attribute("blockSize")?.value)
+                                assertEquals("128", node.attribute("keyBits")?.value)
+                                assertEquals("20", node.attribute("hashSize")?.value)
+                                assertEquals("AES", node.attribute("cipherAlgorithm")?.value)
+                                assertEquals("ChainingModeCBC", node.attribute("cipherChaining")?.value)
+                                assertEquals("SHA1", node.attribute("hashAlgorithm")?.value)
+                                assertEquals("DpYj4WNbM6JWXkuaGykRtA==", node.attribute("saltValue")?.value)
+                            }
+                            "keyEncryptors" -> {
+                                assertEquals(1, node.children.size)
+                                assertEquals("keyEncryptor", node.children[0].name)
+                            }
+                            "keyEncryptor" -> {
+                                assertEquals(1, node.children.size)
+                                assertEquals("p:encryptedKey", node.children[0].name)
+                                assertEquals(
+                                    "http://schemas.microsoft.com/office/2006/keyEncryptor/password",
+                                    node.attribute("uri")?.value
+                                )
+                            }
+                            "p:encryptedKey" -> {
+                                assertTrue(node.children.isEmpty())
+                                assertEquals(12, node.attributesList.size)
+                                assertEquals("100000", node.attribute("spinCount")?.value)
+                                assertEquals("16", node.attribute("saltSize")?.value)
+                                assertEquals("16", node.attribute("blockSize")?.value)
+                                assertEquals("128", node.attribute("keyBits")?.value)
+                                assertEquals("20", node.attribute("hashSize")?.value)
+                                assertEquals("AES", node.attribute("cipherAlgorithm")?.value)
+                                assertEquals("ChainingModeCBC", node.attribute("cipherChaining")?.value)
+                                assertEquals("SHA1", node.attribute("hashAlgorithm")?.value)
+                                assertEquals("xxxyyy", node.attribute("saltValue")?.value)
+                                assertEquals(
+                                    "xxxyyy123",
+                                    node.attribute("encryptedVerifierHashInput")?.value
+                                )
+                                assertEquals(
+                                    "abcdefg",
+                                    node.attribute("encryptedVerifierHashValue")?.value
+                                )
+                                assertEquals(
+                                    "1234==",
+                                    node.attribute("encryptedKeyValue")?.value
+                                )
+                            }
                         }
                     }
                 }

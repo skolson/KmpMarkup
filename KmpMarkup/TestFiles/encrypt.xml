@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<encryption xmlns="http://schemas.microsoft.com/office/2006/encryption"
+    xmlns:p="http://schemas.microsoft.com/office/2006/keyEncryptor/password">
+    <keyData saltSize="16" blockSize="16" keyBits="128" hashSize="20" cipherAlgorithm="AES"
+        cipherChaining="ChainingModeCBC" hashAlgorithm="SHA1" saltValue="DpYj4WNbM6JWXkuaGykRtA=="/>
+    <keyEncryptors>
+        <keyEncryptor uri="http://schemas.microsoft.com/office/2006/keyEncryptor/password">
+            <p:encryptedKey spinCount="100000" saltSize="16" blockSize="16" keyBits="128"
+                hashSize="20" cipherAlgorithm="AES" cipherChaining="ChainingModeCBC"
+                hashAlgorithm="SHA1" saltValue="xxxyyy"
+                encryptedVerifierHashInput="xxxyyy123"
+                encryptedVerifierHashValue="abcdefg"
+                encryptedKeyValue="1234=="/>
+        </keyEncryptor>
+    </keyEncryptors>
+</encryption>
