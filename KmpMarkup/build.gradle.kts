@@ -81,11 +81,25 @@ kotlin {
             }
         }
     }
-    jvm()
     linuxArm64() {
         binaries {
             executable {
                 debuggable = true
+            }
+        }
+    }
+    jvm()
+    macosArm64 {
+        binaries {
+            framework {
+                baseName = appleFrameworkName
+            }
+        }
+    }
+    macosX64 {
+        binaries {
+            framework {
+                baseName = appleFrameworkName
             }
         }
     }
