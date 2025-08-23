@@ -3,7 +3,7 @@ appVersion = "0.1.0"
 appVersionName = "0.1.0"
 appId = "com.oldguy.kmpmarkup"
 
-androidGradlePlugin = "8.13.0-rc01"
+androidGradlePlugin = "9.0.0-alpha02"
 javaVersion = "21"
 androidBuildTools = "36.0.0"
 androidSdk = "36"
