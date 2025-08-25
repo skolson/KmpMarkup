@@ -2,6 +2,7 @@ package com.oldguy.markup.ofx
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.oldguy.common.io.TextBuffer
+import com.oldguy.common.io.charsets.Charsets
 import com.oldguy.markup.XmlParser
 import com.oldguy.markup.model.Attribute
 import com.oldguy.markup.model.Declaration
@@ -18,8 +19,6 @@ import kotlin.time.ExperimentalTime
 
 /**
  * Parses the content of an OFX compliant file.
- * @param textBuffer from an OfxFile typically, which parses out text header lines and is positioned
- * at the start of the SGML.
  * @param textHeaders if this is empty, indicating no text headers were found, then the parser will
  * parse the SGML and require presence of a ProcessInstruction with and OFX target and attributes
  * containing the OFX header values. If for some reason a source has both (shouldn't happen), any
@@ -34,7 +33,7 @@ import kotlin.time.ExperimentalTime
  * @property charset OFX charset parsed from text headers or the XML prolog
  */
 @OptIn(ExperimentalTime::class, FormatStringsInDatetimeFormats::class)
-class OfxParser(textBuffer: TextBuffer, textHeaders: Map<String, String>) {
+class OfxParser(textHeaders: Map<String, String>) {
     // These can come from a file or from a processing instruction
     val ofxHeaders = mutableMapOf<String, String>().apply {
         putAll(textHeaders)
@@ -68,11 +67,18 @@ class OfxParser(textBuffer: TextBuffer, textHeaders: Map<String, String>) {
                                     ofxHeaders[attr.name.uppercase()] = attr.value
                                 }
                             }
+
                         }
                     }
                     XmlParser.Event.Declaration -> {
-                        (model as Declaration).encoding?.let {
+                        val d = model as Declaration
+                        d.encoding?.let {
                             ofxHeaders["ENCODING"] = it
+                            if (!d.isCharsetSupported)
+                                throw IllegalStateException("Unsupported charset: ${d.encoding}")
+                            if (it.uppercase() != textBuffer.charset.name.uppercase()) {
+                                textBuffer.changeCharset(Charsets.fromName(it))
+                            }
                         }
                     }
                     else -> {}

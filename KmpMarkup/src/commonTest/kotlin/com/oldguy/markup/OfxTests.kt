@@ -26,7 +26,7 @@ class OfxTests {
             val path = File.workingDirectory().fullPath + "/TestFiles/OfxTrans.qfx"
             val fil = OfxFile(path)
             fil.use { textBuffer ->
-                OfxParser(textBuffer, fil.ofxHeaders).apply {
+                OfxParser(fil.ofxHeaders).apply {
                     transformTransactions(parseSgml(textBuffer)).apply {
                         transactionTests(first, second)
                     }
@@ -43,7 +43,7 @@ class OfxTests {
             val path = File.workingDirectory().fullPath + "/TestFiles/OfxTransV2.qfx"
             val fil = OfxFile(path)
             fil.use { textBuffer ->
-                OfxParser(textBuffer, fil.ofxHeaders).apply {
+                OfxParser(fil.ofxHeaders).apply {
                     transformTransactions(parseSgml(textBuffer)).apply {
                         transactionTests(first, second)
                     }
@@ -58,9 +58,9 @@ class OfxTests {
         assertEquals("NONE", parser.security)
         assertEquals("NONE", parser.newFileUid)
         assertEquals("NONE", parser.oldFileUid)
-        assertEquals("1252", parser.charset)
         if (parser.headerVersion == "100") {
             assertEquals("102", parser.version)
+            assertEquals("1252", parser.charset)
         } else if (parser.headerVersion == "200") {
             assertEquals("211", parser.version)
         } else
