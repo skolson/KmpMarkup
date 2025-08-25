@@ -25,7 +25,7 @@ class OfxTests {
         runTest(timeout = 5.minutes) {
             val path = File.workingDirectory().fullPath + "/TestFiles/OfxTrans.qfx"
             val fil = OfxFile(path)
-            fil.use { textBuffer ->
+            fil.use { _, textBuffer ->
                 OfxParser(fil.ofxHeaders).apply {
                     transformTransactions(parseSgml(textBuffer)).apply {
                         transactionTests(first, second)
@@ -42,7 +42,7 @@ class OfxTests {
         runTest(timeout = 5.minutes) {
             val path = File.workingDirectory().fullPath + "/TestFiles/OfxTransV2.qfx"
             val fil = OfxFile(path)
-            fil.use { textBuffer ->
+            fil.use { _, textBuffer ->
                 OfxParser(fil.ofxHeaders).apply {
                     transformTransactions(parseSgml(textBuffer)).apply {
                         transactionTests(first, second)

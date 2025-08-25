@@ -98,10 +98,10 @@ class OfxFile(
         }
     }
 
-    suspend fun use(action: suspend (TextBuffer) -> Unit) {
+    suspend fun use(action: suspend (OfxFile, TextBuffer) -> Unit) {
         open()
         file?.let {
-            action(it.textBuffer)
+            action(this, it.textBuffer)
             it.close()
         }
     }
