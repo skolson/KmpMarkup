@@ -74,6 +74,7 @@ class XmlParser(val textBuffer: TextBuffer)
         var legalNextSeparators = emptyList<String>()
         var model: Model? = null
         var capturingText = false
+        var saveQuotedString = textBuffer.tokenValueQuotedString
         while (!textBuffer.isEndOfFile) {
             var token = lastToken ?: textBuffer.token()
             if (token.separator.isBlank() && token.value.isBlank()) continue
@@ -215,8 +216,12 @@ class XmlParser(val textBuffer: TextBuffer)
                     model = if (target.lowercase() == ProcessingInstruction.xml) {
                         val attrs = parseAttributes(listOf(ProcessingInstruction.stop))
                         Declaration.parse(attrs)
-                    } else
+                    } else {
+                        // PI content may or may not have attributes, can be any content.
+                        saveQuotedString = textBuffer.tokenValueQuotedString
+                        textBuffer.tokenValueQuotedString = false
                         ProcessingInstruction(target, "")
+                    }
                     legalNextSeparators = listOf(ProcessingInstruction.stop)
                 }
                 Event.ProcessingInstructionEnd -> {
@@ -227,6 +232,7 @@ class XmlParser(val textBuffer: TextBuffer)
                                 textBuffer.lineCount,
                                 textBuffer.linePosition
                             )
+                        textBuffer.tokenValueQuotedString = saveQuotedString
                         model = ProcessingInstruction(model.target, token.value)
                     }
                     if (domParser)

@@ -3,6 +3,9 @@ package com.oldguy.markup.ofx
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.oldguy.common.io.TextBuffer
 import com.oldguy.markup.XmlParser
+import com.oldguy.markup.model.Attribute
+import com.oldguy.markup.model.Declaration
+import com.oldguy.markup.model.ProcessingInstruction
 import com.oldguy.markup.model.Node
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -13,15 +16,67 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 
+/**
+ * Parses the content of an OFX compliant file.
+ * @param textBuffer from an OfxFile typically, which parses out text header lines and is positioned
+ * at the start of the SGML.
+ * @param textHeaders if this is empty, indicating no text headers were found, then the parser will
+ * parse the SGML and require presence of a ProcessInstruction with and OFX target and attributes
+ * containing the OFX header values. If for some reason a source has both (shouldn't happen), any
+ * ProcessingInstruction values will override the text header values.
+ *
+ * @property version OFX version parsed from text headers or the OFX PI
+ * @property headerVersion OFX header version parsed from text headers or the OFX PI
+ * @property security OFX security parsed from text headers or the OFX PI
+ * @property oldFileUid OFX old file uid parsed from text headers or the OFX PI
+ * @property newFileUid OFX new file uid parsed from text headers or the OFX PI
+ * @property encoding OFX encoding parsed from text headers or the XML prolog
+ * @property charset OFX charset parsed from text headers or the XML prolog
+ */
 @OptIn(ExperimentalTime::class, FormatStringsInDatetimeFormats::class)
-class OfxParser(textBuffer: TextBuffer) {
+class OfxParser(textBuffer: TextBuffer, textHeaders: Map<String, String>) {
+    // These can come from a file or from a processing instruction
+    val ofxHeaders = mutableMapOf<String, String>().apply {
+        putAll(textHeaders)
+    }
+
+    val version get() = ofxHeaders[ofxHeadersList[2]] ?: ""
+    val headerVersion get() = ofxHeaders[ofxHeadersList[0]] ?: ""
+    val security get() = ofxHeaders[ofxHeadersList[3]] ?: ""
+    val oldFileUid get() = ofxHeaders[ofxHeadersList[7]] ?: ""
+    val newFileUid get() = ofxHeaders[ofxHeadersList[8]] ?: ""
+    val encoding get() = ofxHeaders[ofxHeadersList[4]] ?: ""
+    val charset get() = ofxHeaders[ofxHeadersList[5]] ?: ""
 
     suspend fun parseSgml(textBuffer: TextBuffer): Node {
         XmlParser(textBuffer).apply {
-            pullParser = false
+            pullParser = true
             domParser = true
             sgmlNoLeafEndTag = true
             parse { event, model ->
+                when (event) {
+                    XmlParser.Event.ProcessingInstructionEnd -> {
+                        (model as ProcessingInstruction).apply {
+                            if (target.uppercase() != "OFX")
+                                throw IllegalStateException("Invalid OFX ProcessingInstruction target: $target")
+                            Attribute.parseAttributes(content).apply {
+                                if (isEmpty())
+                                    throw IllegalStateException("No attributes found in OFX ProcessingInstruction")
+                                for (attr in this) {
+                                    if (!ofxHeadersList.contains(attr.name))
+                                        throw IllegalStateException("Attribute ${attr.name} found in OFX ProcessingInstruction not legal")
+                                    ofxHeaders[attr.name.uppercase()] = attr.value
+                                }
+                            }
+                        }
+                    }
+                    XmlParser.Event.Declaration -> {
+                        (model as Declaration).encoding?.let {
+                            ofxHeaders["ENCODING"] = it
+                        }
+                    }
+                    else -> {}
+                }
                 true
             }
             document.root?.let {
@@ -144,6 +199,18 @@ class OfxParser(textBuffer: TextBuffer) {
     }
 
     companion object {
+        val ofxHeadersList = listOf(
+            "OFXHEADER",
+            "DATA",
+            "VERSION",
+            "SECURITY",
+            "ENCODING",
+            "CHARSET",
+            "COMPRESSION",
+            "OLDFILEUID",
+            "NEWFILEUID"
+        )
+
         val rootName = "OFX"
         private const val ofxDateFormat1 = "yyyyMMddHHmmss"
         private val ofxFormat1 = LocalDateTime.Format {

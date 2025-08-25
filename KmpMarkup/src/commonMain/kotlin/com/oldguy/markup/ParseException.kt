@@ -7,5 +7,5 @@ class ParseException(
     message: String,
     val line: Int = 0,
     val column: Int = 0
-): Exception(message) {
+): Exception("line $line:column $column, message: $message") {
 }

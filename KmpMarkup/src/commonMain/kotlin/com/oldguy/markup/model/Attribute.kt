@@ -70,5 +70,18 @@ data class Attribute(
     companion object {
         const val namespaceSeparator = ":"
         const val reservedPrefix = "xmlns"
+
+        /**
+         * Use this to parse a string that has a set of name/value pairs separated by = and values
+         * in quotes.
+         */
+        fun parseAttributes(attributesString: String): List<Attribute> {
+            if (attributesString.length < 2) return emptyList()
+            return Regex("(\\w+)\\s*=\\s*([\"'])(.*?)\\2")
+                .findAll(attributesString)
+                .map {
+                    Attribute(it.groupValues[1], it.groupValues[3])
+                }.toList()
+        }
     }
 }

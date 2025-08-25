@@ -12,9 +12,23 @@ class OfxFile(
     var ofxCharset: Charset = Iso88591()
     val ofxHeaders = mutableMapOf<String, String>()
 
+    /**
+     * If this property is false, then standard text headers were found and parsed before SGML. If
+     * true, then no text headers were found. OFX header values will be parsed from the OFX
+     * ProcessingInstruction that is required since text headers are not present.
+     */
+    var noHeaders = false
+        private set
+
     var file: TextFile? = null
         private set
 
+    /**
+     * Use this to close the TextFile and reopen from the beginning using the new Charset.  Note that
+     * TextBuffer also has a changeCharset method, which just applies the new Charset for all subsequent
+     * reads. Use the TextBuffer changeCharset function if closing and re-opening the TextFile
+     * is not needed or desired.
+     */
     suspend fun changeCharset(charset: Charset): TextFile {
         file?.close()
         return TextFile(path, charset).also { file = it }
@@ -24,12 +38,17 @@ class OfxFile(
         var headerLines = 0
         var tBuf: TextBuffer
         TextFile(path).apply {
-            val headers = mutableListOf<String>().apply { addAll(ofxHeadersList) }
+            this@OfxFile.file = this
+            val headers = mutableListOf<String>().apply { addAll(OfxParser.ofxHeadersList) }
             tBuf = textBuffer
             while (true) {
                 val line = readLine().trim()
                 headerLines++
                 if (line.isEmpty()) break
+                if (headerLines == 1 && line.startsWith("<?")) {
+                    noHeaders = true
+                    break
+                }
                 if (line.startsWith('<'))
                     throw IllegalStateException("Invalid ofx file: < found before required empty header line")
                 if (line.indexOf(':') < 0)
@@ -44,8 +63,11 @@ class OfxFile(
                     throw IllegalStateException("Invalid ofx header name: ${tokens[0]}")
                 when (tokens[0].uppercase()) {
                     "CHARSET" -> {
-                        ofxCharset = when (tokens[1]) {
+                        ofxCharset = when (tokens[1].uppercase()) {
+                            "WINDOWS-1252",
+                            "CP1252",
                             "1252" -> Windows1252()
+                            "ASCII",
                             "USASCII",
                             "UTF-8" -> Iso88591()
                             else ->
@@ -61,16 +83,17 @@ class OfxFile(
                     }
                 }
             }
-            if (charset.name != defaultCharset.name) {
-                close()
-                changeCharset(charset).apply {
-                    tBuf = textBuffer
-                    repeat(headerLines) { tBuf.readLine() }
+            if (noHeaders) {
+                rewind()
+                tBuf.next()
+            } else {
+                if (charset.name != defaultCharset.name) {
+                    tBuf.changeCharset(charset)
                 }
+                val c = tBuf.next()
+                if (c != '<')
+                    throw IllegalStateException("Invalid ofx file: missing < after headers")
             }
-            val c = tBuf.next()
-            if (c != '<')
-                throw IllegalStateException("Invalid ofx file: missing < after headers")
             return tBuf
         }
     }
@@ -83,17 +106,6 @@ class OfxFile(
         }
     }
     companion object {
-        val ofxHeadersList = listOf(
-            "OFXHEADER",
-            "DATA",
-            "VERSION",
-            "SECURITY",
-            "ENCODING",
-            "CHARSET",
-            "COMPRESSION",
-            "OLDFILEUID",
-            "NEWFILEUID"
-        )
         val defaultCharset: Charset = Iso88591()
     }
 }
