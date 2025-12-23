@@ -35,6 +35,7 @@ kotlin {
     jvmToolchain {
         languageVersion = javaLanguageVersion
     }
+
     androidLibrary {
         compileSdk = libs.versions.androidSdk.get().toInt()
         minSdk = libs.versions.androidSdkMinimum.get().toInt()
