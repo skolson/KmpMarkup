@@ -1,10 +1,11 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     libs.plugins.also {
         alias(it.kotlin.multiplatform)
-        alias(it.android.library)
+        alias(it.android.kmp.library)
         alias(it.dokka.base)
         alias(it.maven.publish.vannik)
     }
@@ -13,6 +14,7 @@ val appVersion = libs.versions.appVersion.get()
 group = libs.versions.appId.get()
 version = libs.versions.appVersionName.get()
 val appleFrameworkName = "KmpMarkup"
+val iosMinSdk = "14"
 val publishDomain = "io.github.skolson"
 val githubUri = "skolson/$appleFrameworkName"
 val githubUrl = "https://github.com/$githubUri"
@@ -29,84 +31,60 @@ java {
     }
 }
 
-android {
-    compileSdk = libs.versions.androidSdk.get().toInt()
-    buildToolsVersion = libs.versions.androidBuildTools.get()
-    namespace = "${libs.versions.appId.get()}.common"
-
-    defaultConfig {
-        minSdk = libs.versions.androidSdkMinimum.get().toInt()
-        testInstrumentationRunner = libs.versions.androidxTestRunner.get()
-        buildFeatures {
-            buildConfig = false
-        }
-        testInstrumentationRunnerArguments["runnerBuilder"] = libs.versions.testRunnerBuilder.get()
-    }
-}
-
 kotlin {
     jvmToolchain {
         languageVersion = javaLanguageVersion
     }
-    androidTarget {
-        java.sourceCompatibility = javaVersion
-        java.targetCompatibility = javaVersion
+    androidLibrary {
+        compileSdk = libs.versions.androidSdk.get().toInt()
+        minSdk = libs.versions.androidSdkMinimum.get().toInt()
+        buildToolsVersion = libs.versions.androidBuildTools.get()
+        namespace = libs.versions.appId.get()
+
+        withHostTest {}
+        withDeviceTest {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            execution = "HOST"
+        }
+
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.files.add(project.file("proguard-rules.pro"))
+        }
     }
 
-    iosArm64 {
-        binaries {
+    val appleXcf = XCFramework()
+    listOf(
+        macosX64(), macosArm64()
+    ).forEach {
+        it.binaries {
             framework {
                 baseName = appleFrameworkName
+                appleXcf.add(this)
+                isStatic = true
             }
         }
     }
-    iosX64 {
-        binaries {
+    listOf(
+        iosX64(), iosArm64(), iosSimulatorArm64()
+    ).forEach {
+        it.binaries {
             framework {
                 baseName = appleFrameworkName
+                appleXcf.add(this)
+                isStatic = true
+                freeCompilerArgs =
+                    freeCompilerArgs + listOf("-Xoverride-konan-properties=osVersionMin=$iosMinSdk")
             }
         }
     }
-    iosSimulatorArm64 {
-        binaries {
-            framework {
-                baseName = appleFrameworkName
-            }
-        }
-    }
-    linuxX64() {
-        binaries {
-            executable {
-                debuggable = true
-            }
-        }
-    }
-    linuxArm64() {
-        binaries {
-            executable {
-                debuggable = true
-            }
-        }
-    }
+    linuxArm64()
+    linuxX64()
     jvm()
-    macosArm64 {
-        binaries {
-            framework {
-                baseName = appleFrameworkName
-            }
-        }
-    }
-    macosX64 {
-        binaries {
-            framework {
-                baseName = appleFrameworkName
-            }
-        }
-    }
 
     applyDefaultHierarchyTemplate()
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(libs.kmp.io)
                 implementation(libs.kotlinx.coroutines.core)
@@ -114,15 +92,12 @@ kotlin {
                 implementation(libs.bigdecimal)
             }
         }
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.bundles.kotlin.test)
             }
         }
-        val androidMain by getting {
-        }
-        val linuxMain by getting {
-        }
+
         all {
             languageSettings {
                 optIn("kotlin.ExperimentalUnsignedTypes")
