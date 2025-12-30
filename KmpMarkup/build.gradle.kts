@@ -56,26 +56,17 @@ kotlin {
 
     val appleXcf = XCFramework()
     listOf(
-        macosX64(), macosArm64()
+        macosX64(), macosArm64(), iosX64(), iosArm64(), iosSimulatorArm64()
     ).forEach {
         it.binaries {
             framework {
                 baseName = appleFrameworkName
                 appleXcf.add(this)
                 isStatic = true
-            }
-        }
-    }
-    listOf(
-        iosX64(), iosArm64(), iosSimulatorArm64()
-    ).forEach {
-        it.binaries {
-            framework {
-                baseName = appleFrameworkName
-                appleXcf.add(this)
-                isStatic = true
-                freeCompilerArgs =
-                    freeCompilerArgs + listOf("-Xoverride-konan-properties=osVersionMin=$iosMinSdk")
+                if (it.name.contains("ios")) {
+                    freeCompilerArgs =
+                        freeCompilerArgs + listOf("-Xoverride-konan-properties=osVersionMin=$iosMinSdk")
+                }
             }
         }
     }
@@ -107,18 +98,26 @@ kotlin {
     }
 }
 
+val longName = "Kotlin Multiplatform XML Parser"
+dokka {
+    moduleName.set(longName)
+    dokkaSourceSets.commonMain {
+    }
+    dokkaPublications.html {
+    }
+}
+
 mavenPublishing {
     coordinates(publishDomain, name, appVersion)
     configure(
         KotlinMultiplatform(
             JavadocJar.Dokka("dokkaGeneratePublicationHtml"),
-            true,
-            listOf("debug", "release")
+            true
         )
     )
 
     pom {
-        name.set("Kotlin Multiplatform XML Parser")
+        name.set(longName)
         description.set("Library for simple XML parsing on supported 64 bit platforms; Android, IOS, Windows, Linux, MacOS")
         url.set(githubUrl)
         inceptionYear.set("2025")
