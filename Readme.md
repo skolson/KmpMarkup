@@ -8,6 +8,8 @@ The library is not published to Maven as of this writing. I'll be surprised if t
 
 The next markup parser planned is YAML.
 
+Treat as alpha quality
+
 ## Reason for Existence
 
 Apple and Linux native have XML libraries available via cinterop, which are complete XML implementations. Android and JVM have multiple XML libraries to choose from. Each implementation has its own idiosyncrasies, especially when needing "relaxed" syntaxing for more SGML dialects like OFX files (Quicken format). OFX files use SGML since their leaf nodes with text values optionally do not use closing tags. This is a simple pure Kotlin library that handles both in a consistent way. 
