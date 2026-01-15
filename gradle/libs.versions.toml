@@ -3,30 +3,27 @@ appVersion = "0.1.0"
 appVersionName = "0.1.0"
 appId = "com.oldguy.kmpmarkup"
 
-androidGradlePlugin = "9.1.0-alpha01"
+androidGradlePlugin = "9.1.0-alpha04"
 javaVersion = "21"
 androidBuildTools = "36.1.0"
 androidSdk = "36"
+# Use 26 for publishing. To avoid JUnit5/6 desugaring issues, use 35 for androidDeviceTest builds/tests
 androidSdkMinimum = "26"
+#androidSdkMinimum = "35"
 
 kotlin = "2.3.0"
 kotlinCoroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 
-kmpIo = "0.3.0-SNAPSHOT"
+kmpIo = "0.3.0"
 bigDecimal = "0.3.10"
 
 dokkaPlugin = "2.1.0"
 vannikTech = "0.35.0"
 
-androidxTestRunner = "androidx.test.runner.AndroidJUnitRunner"
-androidxTestRun = "1.7.0"
-androidxJunit = "1.3.0"
-androidxTestCore = "1.7.0"
-junit5 = "6.0.1"
-testMannodermausPlugin = "1.14.0.0"
-testMannodermaus = "1.9.0"
-testRunnerBuilder = "de.mannodermaus.junit5.AndroidJUnit5Builder"
+androidxTestRunner = "1.7.0"
+jupiter = "6.0.2"
+testMannodermausPlugin = "2.0.1"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinCoroutines"}
@@ -35,26 +32,24 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kmp-io = { module = "io.github.skolson:kmp-io", version.ref = "kmpIo" }
 bigdecimal = { module = "com.ionspin.kotlin:bignum", version.ref = "bigDecimal"}
 
-androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
-androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
-androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRun" }
-junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
-junit5-runtime = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
-junit5-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-annotations = { module = "org.jetbrains.kotlin:kotlin-test-annotations-common", version.ref = "kotlin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinCoroutines"}
-mannodermaus-test = { module = "de.mannodermaus.junit5:android-test-core", version.ref = "testMannodermaus" }
-mannodermaus-test-runner = { module = "de.mannodermaus.junit5:android-test-runner", version.ref = "testMannodermaus" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jupiter" }
+jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter" }
+jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jupiter" }
+android-jupiter-test-runner = { module = "de.mannodermaus.junit5:android-test-runner", version.ref = "testMannodermausPlugin" }
+android-jupiter-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "jupiter" }
+android-jupiter-suite-api = { module = "org.junit.platform:junit-platform-suite-api", version.ref = "jupiter" }
 
 [bundles]
-junit5-impl = [ "androidx-test-core", "junit5-api", "junit5-params", "mannodermaus-test" ]
-junit5-runtime = [ "junit5-runtime", "androidx-test-runner", "mannodermaus-test-runner" ]
+androidx-test = [ "kotlinx-coroutines-test", "kotlinx-coroutines-core", "jupiter-api", "jupiter-params", "jupiter-engine", "androidx-test-runner", "android-jupiter-test-runner", "android-jupiter-launcher", "android-jupiter-suite-api" ]
 kotlin-test = [ "kotlin-test", "kotlin-test-annotations", "kotlinx-coroutines-test" ]
 
 [plugins]
 android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-android-junit5 = { id = "de.mannodermaus.android-junit5", version.ref = "testMannodermausPlugin" }
+android-jupiter = { id = "de.mannodermaus.android-junit5", version.ref = "testMannodermausPlugin" }
 maven-publish-vannik = { id = "com.vanniktech.maven.publish", version.ref = "vannikTech" }
 dokka-base = { id = "org.jetbrains.dokka", version.ref = "dokkaPlugin" }

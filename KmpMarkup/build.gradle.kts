@@ -45,6 +45,9 @@ kotlin {
         withHostTest {}
         withDeviceTest {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            instrumentationRunnerArguments += mapOf(
+                "runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder"
+            )
             execution = "HOST"
         }
 
@@ -87,6 +90,11 @@ kotlin {
         getByName("commonTest") {
             dependencies {
                 implementation(libs.bundles.kotlin.test)
+            }
+        }
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.bundles.androidx.test)
             }
         }
 
