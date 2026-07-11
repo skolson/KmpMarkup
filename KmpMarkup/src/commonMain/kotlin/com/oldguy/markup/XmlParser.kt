@@ -77,7 +77,7 @@ class XmlParser(val textBuffer: TextBuffer)
         var saveQuotedString = textBuffer.tokenValueQuotedString
         while (!textBuffer.isEndOfFile) {
             var token = lastToken ?: textBuffer.token()
-            if (token.separator.isBlank() && token.value.isBlank()) continue
+            if (token.isBlank) continue
             lastToken = null
             if (legalNextSeparators.isNotEmpty() && !legalNextSeparators.contains(token.separator))
                 throw ParseException(
@@ -355,7 +355,12 @@ class XmlParser(val textBuffer: TextBuffer)
 
     /**
      * Parse attributes until a Node end tag separator is found. Set the lastToken,
-     * typically the PI.stop separator, so it can be processed normally
+     * to the last token that contains an ending separator, so it can be processed normally.
+     *
+     * Attributes must be separated by whitespace. Quotes are optional, if found the token returned
+     * will indicate that quotes were found
+     * @param endingSeparators list of separators that indicate the end of an attribute list
+     * @return List of attribute instances found
      */
     suspend fun parseAttributes(endingSeparators: List<String>): Attributes {
         val equalChar = "="
@@ -369,15 +374,32 @@ class XmlParser(val textBuffer: TextBuffer)
                     val nameToken = token()
                     if (endingSeparators.contains(nameToken.separator)) {
                         lastToken = nameToken
-                        tokenSeparators = save
-                        return this
+                        break
                     }
-                    val valueToken = token()
+                    val valueToken = token(true)
                     parse(nameToken, valueToken)
+                    if (endingSeparators.contains(valueToken.separator)) {
+                        lastToken = valueToken
+                        break
+                    }
                 }
+                tokenSeparators = save
             }
         }
     }
+
+    private suspend fun getAttributeToken(
+        stopOnWhitespace: Boolean,
+        endingSeparators: List<String>
+    ): Pair<Boolean, TextBuffer.Token>
+    {
+        val t = textBuffer.token(stopOnWhitespace)
+        val e = endingSeparators.contains(t.separator)
+        if (e)
+            lastToken = t
+        return Pair(e, t)
+    }
+
     companion object {
         /**
          * Most of this info from https://www.w3.org/TR/xml

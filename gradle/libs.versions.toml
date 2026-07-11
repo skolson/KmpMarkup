@@ -1,28 +1,28 @@
 [versions]
-appVersion = "0.1.0"
-appVersionName = "0.1.0"
+appVersion = "0.2.0"
+appVersionName = "0.2.0"
 appId = "com.oldguy.kmpmarkup"
 
-androidGradlePlugin = "9.1.0-alpha04"
+androidGradlePlugin = "9.4.0-alpha04"
 javaVersion = "21"
-androidBuildTools = "36.1.0"
-androidSdk = "36"
-# Use 26 for publishing. To avoid JUnit5/6 desugaring issues, use 35 for androidDeviceTest builds/tests
-androidSdkMinimum = "26"
-#androidSdkMinimum = "35"
+androidBuildTools = "37.0.0"
+androidSdk = "37"
+# Use 26 for publishing. To avoid JUnit5/6 desugaring issues, use 37 for androidDeviceTest builds/tests
+#androidSdkMinimum = "26"
+androidSdkMinimum = "37"
 
-kotlin = "2.3.0"
-kotlinCoroutines = "1.10.2"
-kotlinx-datetime = "0.7.1"
+kotlin = "2.4.0"
+kotlinCoroutines = "1.11.0"
+kotlinx-datetime = "0.8.0"
 
-kmpIo = "0.3.0"
+kmpIo = "0.3.1"
 bigDecimal = "0.3.10"
 
-dokkaPlugin = "2.1.0"
-vannikTech = "0.35.0"
+dokkaPlugin = "2.2.0"
+vannikTech = "0.37.0"
 
 androidxTestRunner = "1.7.0"
-jupiter = "6.0.2"
+jupiter = "6.1.1"
 testMannodermausPlugin = "2.0.1"
 
 [libraries]

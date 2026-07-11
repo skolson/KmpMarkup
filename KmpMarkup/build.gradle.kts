@@ -36,19 +36,33 @@ kotlin {
         languageVersion = javaLanguageVersion
     }
 
-    androidLibrary {
+    android {
         compileSdk = libs.versions.androidSdk.get().toInt()
         minSdk = libs.versions.androidSdkMinimum.get().toInt()
         buildToolsVersion = libs.versions.androidBuildTools.get()
         namespace = libs.versions.appId.get()
 
-        withHostTest {}
-        withDeviceTest {
+        androidResources {
+            enable = true
+        }
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test" // This provides androidDeviceTest access to commonTest
+        }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
             instrumentationRunnerArguments += mapOf(
                 "runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder"
             )
             execution = "HOST"
+        }
+
+        packaging {
+            resources.excludes.addAll(listOf(
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE.md"
+            ))
         }
 
         optimization {
@@ -105,7 +119,6 @@ kotlin {
         }
     }
 }
-
 val longName = "Kotlin Multiplatform XML Parser"
 dokka {
     moduleName.set(longName)
@@ -117,12 +130,6 @@ dokka {
 
 mavenPublishing {
     coordinates(publishDomain, name, appVersion)
-    configure(
-        KotlinMultiplatform(
-            JavadocJar.Dokka("dokkaGeneratePublicationHtml"),
-            true
-        )
-    )
 
     pom {
         name.set(longName)
