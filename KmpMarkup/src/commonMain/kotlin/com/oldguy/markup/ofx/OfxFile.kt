@@ -85,14 +85,10 @@ class OfxFile(
             }
             if (noHeaders) {
                 rewind()
-                tBuf.next()
             } else {
                 if (charset.name != defaultCharset.name) {
                     tBuf.changeCharset(charset)
                 }
-                val c = tBuf.next()
-                if (c != '<')
-                    throw IllegalStateException("Invalid ofx file: missing < after headers")
             }
             return tBuf
         }
