@@ -11,7 +11,7 @@ androidSdk = "37"
 androidSdkMinimum = "26"
 #androidSdkMinimum = "37"
 
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 kotlinCoroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 

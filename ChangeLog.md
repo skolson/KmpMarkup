@@ -2,7 +2,7 @@
 
 - Gradle 9.6.1
 - Gradle toolchain
-- Kotlin 2.4.0
+- Kotlin 2.4.10
 - kmp-io 0.3.1
 - AGP 9.4.0-alpha04
 - Android SDK 37

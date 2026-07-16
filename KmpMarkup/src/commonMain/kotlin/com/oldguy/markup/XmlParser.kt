@@ -175,8 +175,6 @@ class XmlParser(val textBuffer: TextBuffer)
                         addTextToNode(token, false)
                     textBuffer.apply {
                         saveSeparators = tokenSeparators
-                        whitespace = retainWhitespace
-                        retainWhitespace = true
                         tokenValueQuotedString = false
                         tokenSeparators = listOf(Comment.stop)
                     }
@@ -185,7 +183,6 @@ class XmlParser(val textBuffer: TextBuffer)
                 }
                 Event.CommentEnd -> {
                     textBuffer.tokenSeparators = saveSeparators
-                    textBuffer.retainWhitespace = whitespace
                     model = Comment(token.value)
                     legalNextSeparators = emptyList()
                 }
